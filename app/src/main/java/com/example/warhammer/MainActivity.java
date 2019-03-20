@@ -3,6 +3,8 @@ package com.example.warhammer;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.SearchView;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,28 +14,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -41,33 +34,25 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     private String id_SRM = "-104169151";
     private String necronId = "222401877";
     private String wah30Id = "236412223";
     private String serviceKey = "ef32ef1cef32ef1cef32ef1c19ef5baea3eef32ef32ef1cb3bbcedb07d470665f02863d";
-    ArrayList<Post> temp_album = new ArrayList<>();
+    ArrayList<Post> tempAlbum = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationIcon(R.drawable.menu);
 
         List<String> alb = new ArrayList<String>(); alb.add(necronId); alb.add(wah30Id);
         parsePhotos(alb); //загрузка данных из вк
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-            }
-        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -75,9 +60,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
+
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        //код Куока
+        GridView gridview = (GridView) findViewById(R.id.gridView);
+        gridview.setAdapter(new DataAdapter(this, tempAlbum));
+
+        gridview.setOnItemClickListener(gridviewOnItemClickListener);
     }
 
     @Override
@@ -90,27 +81,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -118,23 +90,55 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
+        if (id == R.id.nav_fractions) {
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        } else if (id == R.id.nav_save) {
 
-        } else if (id == R.id.nav_slideshow) {
+        } else if (id == R.id.nav_home) {
 
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.nav_acces) {
 
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+
+    //поиск
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_search, menu);
+        MenuItem mSearch = menu.findItem(R.id.action_search);
+        SearchView search = (SearchView) mSearch.getActionView();
+        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                //сюда адаптер, то, что мы ищем с помощью поиска
+                return false;
+            }
+        });
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    //шаманю, Куок
+    private GridView.OnItemClickListener gridviewOnItemClickListener = new GridView.OnItemClickListener() {
+
+        //пока оставлю, Куок
+        @Override
+        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {}
+    };
+
+    private void initGridArray() {
+        GridView gridView = (GridView) findViewById(R.id.gridView);
+        DataAdapter postsAdapter = new DataAdapter(this, tempAlbum);
+        gridView.setAdapter(postsAdapter);
     }
 
     // HTTP GET request
@@ -160,17 +164,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    /*private void initGridArray() {
-        GridView gridView = (GridView) findViewById(R.id.gridview);
-        PostAdapter postsAdapter = new PostAdapter(this, posts);
-        gridView.setAdapter(postsAdapter);
-        TextView text = findViewById(R.id.defaultText);
-        text.setText(String.valueOf(posts.size()));
-    }*/
-
     private void parsePhotos(List<String> albums)
     {
-       for (int i=0; i < albums.size(); i++){
+        for (int i=0; i < albums.size(); i++){
             HashMap<String, String> args = new HashMap<String, String>();
             args.put("album_id", albums.get(i));
             getPhotos(args);
@@ -215,16 +211,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                             if(picture_small.getString("type") == "q")
                                                 j = max+1;
                                         }
-                                        //String name = take_name(picture.getString("text"));
-                                        //String price = take_price(picture.getString("text"));
-                                        //String a = object.getString("album_id") + "_" + object.getString("id");
 
                                         Post good = new Post(object.getString("id"), object.getString("text"), picture_big.getString("url"),
                                                 picture_small.getString("url"));
                                         good.makeNameAndPrice("");
-                                        temp_album.add(good);
+                                        tempAlbum.add(good);
                                     }
-
+                                    initGridArray();
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
